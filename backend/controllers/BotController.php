@@ -58,7 +58,7 @@ class BotController extends Controller
 
     public function actionWebhook()
     {        
-        // $this->bot = new Bot('5256166937:AAG4vebZUiiGYf0jaDgkuwGf5BCwBSj5WC0');
+        $this->bot = new Bot('5256166937:AAG4vebZUiiGYf0jaDgkuwGf5BCwBSj5WC0');
         
         /* Основные параметры */
         $this->postData = BotHelper::getPostData();
@@ -67,6 +67,8 @@ class BotController extends Controller
         $this->currentMessage = trim($this->postData['message']['text']);
 
         $user = BotUser::getUser($this->chatId);
+        
+        $this->sendMessage('сосать');
 
         // Если текстовое сообщение
         if (BotHelper::isTextMessage($this->postData)) {
@@ -80,6 +82,8 @@ class BotController extends Controller
                 break;
     
                 case 1:
+                    // $user->setStepMessage(2);
+                    $this->sendMessage('сосать');
                 break;
                 
                 case 2:
@@ -96,28 +100,6 @@ class BotController extends Controller
         }
 
         return true;
-    }
-
-    public function actionTrahSexom()
-    {
-        $users = BotUser::find()->all();
-
-        foreach ($users as $user) {
-            $this->chatId = $user->chat_id;
-            
-            switch($user->step_message_precise) {
-                case 4:
-                    if($user->isTimerIsReadyByMinutes(20)) {
-                        // $this->sendMessageWithPhotoAndKeyboard();
-
-                        $user->setStepMessagePrecise(5);
-                        $user->setRecievedAt();
-                    }
-                break;
-            }
-
-            $user->save();
-        }
     }
 
     // private function processFill($mailRequest) 
@@ -160,7 +142,7 @@ class BotController extends Controller
 
     private function sendMessage($message) 
     {
-        Bot::sendMessage($this->chatId, $message);
+        $this->bot->sendMessage($this->chatId, $message);
     }
 
     private function sendMessageTest($message) 
