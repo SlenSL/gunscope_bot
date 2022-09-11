@@ -7,9 +7,9 @@ use yii\helpers\Json;
 
 
 //Bot's token
-const TOKEN = ''; 
+// const TOKEN = ''; 
 //Base url for requests to Telegram
-const BASE_URL = 'https://api.telegram.org/bot' . TOKEN . '/';
+// const BASE_URL = 'https://api.telegram.org/bot' . TOKEN . '/';
 
 class Bot extends Model
 {
@@ -22,10 +22,11 @@ class Bot extends Model
     /**
      * constructor
      */
-    function __construct($update) 
+    function __construct($token, $update = null) 
     {
+        $this->token = $token;
         parent::__construct();
-        $postData = $update;
+        // $postData = $update;
     }
 
     /** 
@@ -34,9 +35,9 @@ class Bot extends Model
      * @param array $fields
      * @return mixed
      */ 
-    public static function botApiQuery($method, $fields = [])
+    public function botApiQuery($method, $fields = [])
     {
-        $ch = curl_init(BASE_URL . $method);
+        $ch = curl_init('https://api.telegram.org/bot' . $this->token . '/'. $method);
 
         curl_setopt_array($ch, array(
             CURLOPT_POST => count($fields),
@@ -118,7 +119,7 @@ class Bot extends Model
      * @param mixed $chat_id unique identifier of chat in Telegram
      * @param mixed $text text of the message
      */
-    public static function sendMessage($chat_id, $text)
+    public function sendMessage($chat_id, $text)
     {
         self::botApiQuery("sendMessage", [
             "chat_id" => $chat_id,
@@ -132,7 +133,7 @@ class Bot extends Model
      * @param mixed $chat_id unique identifier of chat in Telegram
      * @param mixed $text text of the message
      */
-    public static function sendMessageWithKeyboard($chat_id, $text, $keyboard)
+    public function sendMessageWithKeyboard($chat_id, $text, $keyboard)
     {
         self::botApiQuery("sendMessage", [
             "chat_id" => $chat_id,
@@ -147,7 +148,7 @@ class Bot extends Model
      * @param mixed $chat_id unique identifier of chat in Telegram
      * @param mixed $text text of the message
      */
-    public static function sendMessageWithInlineKeyboard($chat_id, $text, $inlineKeyboard)
+    public function sendMessageWithInlineKeyboard($chat_id, $text, $inlineKeyboard)
     {
         self::botApiQuery("sendMessage", [
             "chat_id" => $chat_id,
@@ -162,7 +163,7 @@ class Bot extends Model
      * @param mixed $chat_id unique identifier of chat in Telegram
      * @param mixed $text text of the message
      */
-    public static function sendMessageWithPhoto($chat_id, $text, $photoUrl)
+    public function sendMessageWithPhoto($chat_id, $text, $photoUrl)
     {
         self::botApiQuery("sendPhoto", [
             "chat_id" => $chat_id, 
@@ -177,7 +178,7 @@ class Bot extends Model
      * @param mixed $chat_id unique identifier of chat in Telegram
      * @param mixed $text text of the message
      */
-    public static function sendMessageWithPhotoAndKeyboard($chat_id, $text, $inlineKeyboard, $photoUrl)
+    public function sendMessageWithPhotoAndKeyboard($chat_id, $text, $inlineKeyboard, $photoUrl)
     {
         self::botApiQuery("sendPhoto", [
             "chat_id" => $chat_id,
@@ -193,7 +194,7 @@ class Bot extends Model
      * @param mixed $chat_id unique identifier of chat in Telegram
      * @param mixed $text text of the message
      */
-    public static function sendForceReplyMessage($chat_id, $text)
+    public function sendForceReplyMessage($chat_id, $text)
     {
         self::botApiQuery("sendMessage", [
             "chat_id" => $chat_id,
