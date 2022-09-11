@@ -14,17 +14,17 @@ use yii\helpers\Json;
 class Bot extends Model
 {
     //id of user, who made an update
-    private $userId;
+    private $chatId;
     private $token;
-    private $base_url;
-    private $postData;
 
     /**
      * constructor
      */
-    function __construct($token, $update = null) 
+    function __construct($token, $chatId, $update = null) 
     {
         $this->token = $token;
+        $this->chatId = $chatId;
+        
         parent::__construct();
         // $postData = $update;
     }
@@ -50,8 +50,97 @@ class Bot extends Model
         curl_close($ch);
         return $r;
     }
+    
+    /**
+     * Sends message by $this->chatId
+     * @param mixed $this->chatId unique identifier of chat in Telegram
+     * @param mixed $text text of the message
+     */
+    public function sendMessage($text)
+    {
+        self::botApiQuery("sendMessage", [
+            "chat_id" => $this->chatId,
+            "text" => $text,
+            "parse_mode" => 'HTML'
+        ]);
+    }
 
     /**
+     * Sends message with keyboard by $this->chatId
+     * @param mixed $this->chatId unique identifier of chat in Telegram
+     * @param mixed $text text of the message
+     */
+    public function sendMessageWithKeyboard($text, $keyboard)
+    {
+        self::botApiQuery("sendMessage", [
+            "chat_id" => $this->chatId,
+            "text" => $text,
+            "reply_markup" => $keyboard,
+            "parse_mode" => 'HTML'
+        ]);
+    }
+    
+    /**
+     * Sends message with keyboard by $this->chatId
+     * @param mixed $this->chatId unique identifier of chat in Telegram
+     * @param mixed $text text of the message
+     */
+    public function sendMessageWithInlineKeyboard($text, $inlineKeyboard)
+    {
+        self::botApiQuery("sendMessage", [
+            "chat_id" => $this->chatId,
+            "text" => $text,
+            "reply_markup" => $inlineKeyboard,
+            "parse_mode" => 'HTML'
+        ]);
+    }
+
+    /**
+     * Sends message with keyboard by $this->chatId
+     * @param mixed $this->chatId unique identifier of chat in Telegram
+     * @param mixed $text text of the message
+     */
+    public function sendMessageWithPhoto($text, $photoUrl)
+    {
+        self::botApiQuery("sendPhoto", [
+            "chat_id" => $this->chatId, 
+            "photo" => $photoUrl,
+            "caption" => $text,
+            "parse_mode" => 'HTML'
+        ]);
+    }
+
+    /**
+     * Sends message with keyboard by $this->chatId
+     * @param mixed $this->chatId unique identifier of chat in Telegram
+     * @param mixed $text text of the message
+     */
+    public function sendMessageWithPhotoAndKeyboard($text, $inlineKeyboard, $photoUrl)
+    {
+        self::botApiQuery("sendPhoto", [
+            "chat_id" => $this->chatId,
+            "photo" => $photoUrl,
+            "caption" => $text,
+            "reply_markup" => $inlineKeyboard,
+            "parse_mode" => 'HTML'
+        ]);
+    }
+
+    /**
+     * Sends message with keyboard by $this->chatId
+     * @param mixed $this->chatId unique identifier of chat in Telegram
+     * @param mixed $text text of the message
+     */
+    public function sendForceReplyMessage($text)
+    {
+        self::botApiQuery("sendMessage", [
+            "chat_id" => $this->chatId,
+            "text" => $text,
+            "reply_markup" => self::getForcedReply(),
+        ]);
+    }
+
+      /**
      * Creates keyboard  under the message
      * @param array $data
      * @return json array
@@ -111,95 +200,6 @@ class Bot extends Model
         $this->botApiQuery("sendMessage", [
             "chat_id" => $this->userId,
             "text" => "Обработана кнопка " . $this->postData['message']['text'],
-        ]);
-    }
-
-    /**
-     * Sends message by $chat_id
-     * @param mixed $chat_id unique identifier of chat in Telegram
-     * @param mixed $text text of the message
-     */
-    public function sendMessage($chat_id, $text)
-    {
-        self::botApiQuery("sendMessage", [
-            "chat_id" => $chat_id,
-            "text" => $text,
-            "parse_mode" => 'HTML'
-        ]);
-    }
-
-    /**
-     * Sends message with keyboard by $chat_id
-     * @param mixed $chat_id unique identifier of chat in Telegram
-     * @param mixed $text text of the message
-     */
-    public function sendMessageWithKeyboard($chat_id, $text, $keyboard)
-    {
-        self::botApiQuery("sendMessage", [
-            "chat_id" => $chat_id,
-            "text" => $text,
-            "reply_markup" => $keyboard,
-            "parse_mode" => 'HTML'
-        ]);
-    }
-    
-    /**
-     * Sends message with keyboard by $chat_id
-     * @param mixed $chat_id unique identifier of chat in Telegram
-     * @param mixed $text text of the message
-     */
-    public function sendMessageWithInlineKeyboard($chat_id, $text, $inlineKeyboard)
-    {
-        self::botApiQuery("sendMessage", [
-            "chat_id" => $chat_id,
-            "text" => $text,
-            "reply_markup" => $inlineKeyboard,
-            "parse_mode" => 'HTML'
-        ]);
-    }
-
-    /**
-     * Sends message with keyboard by $chat_id
-     * @param mixed $chat_id unique identifier of chat in Telegram
-     * @param mixed $text text of the message
-     */
-    public function sendMessageWithPhoto($chat_id, $text, $photoUrl)
-    {
-        self::botApiQuery("sendPhoto", [
-            "chat_id" => $chat_id, 
-            "photo" => $photoUrl,
-            "caption" => $text,
-            "parse_mode" => 'HTML'
-        ]);
-    }
-
-    /**
-     * Sends message with keyboard by $chat_id
-     * @param mixed $chat_id unique identifier of chat in Telegram
-     * @param mixed $text text of the message
-     */
-    public function sendMessageWithPhotoAndKeyboard($chat_id, $text, $inlineKeyboard, $photoUrl)
-    {
-        self::botApiQuery("sendPhoto", [
-            "chat_id" => $chat_id,
-            "photo" => $photoUrl,
-            "caption" => $text,
-            "reply_markup" => $inlineKeyboard,
-            "parse_mode" => 'HTML'
-        ]);
-    }
-
-    /**
-     * Sends message with keyboard by $chat_id
-     * @param mixed $chat_id unique identifier of chat in Telegram
-     * @param mixed $text text of the message
-     */
-    public function sendForceReplyMessage($chat_id, $text)
-    {
-        self::botApiQuery("sendMessage", [
-            "chat_id" => $chat_id,
-            "text" => $text,
-            "reply_markup" => self::getForcedReply(),
         ]);
     }
 }
