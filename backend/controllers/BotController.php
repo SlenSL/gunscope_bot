@@ -58,32 +58,59 @@ class BotController extends Controller
 
     public function actionWebhook()
     {        
-        $this->bot = new Bot('5256166937:AAG4vebZUiiGYf0jaDgkuwGf5BCwBSj5WC0');
-        
-        /* Основные параметры */
+        $this->chatId = 712226559;
+
+        /* Инициализация бота */
+        $this->bot = new Bot('5780876936:AAGtj-8WeL-WlsE9QmzuH6URFTPxPd3EMI8', $this->chatId);
+
+         $this->sendMessageWithInlineKeyboardArray(
+            "Что вы хотите сделать?",
+            [
+                ['text' => '📧Отправить пост', 'callback_data' => 'send_post'],
+                ['text' => "💻Смотреть посты (5 крайних)", 'callback_data' => 'watch_posts'],
+            ]
+        );
+
         $this->postData = BotHelper::getPostData();
-        
+
+        $this->sendMessageWithInlineKeyboard(
+            "<b>Приветствую терпил😌</b>\n",
+            $this->postData['callback_query']['data'],
+            // 'af',
+            'da'
+        );
+
+        /* Текущий ответ от пользователя */
+        $this->postData = BotHelper::getPostData();
         $this->chatId = $this->postData['message']['chat']['id'];
         $this->currentMessage = trim($this->postData['message']['text']);
-
-        $user = BotUser::getUser($this->chatId);
         
-        $this->sendMessage('сосать');
+        /* Инициализация бота */
+        $this->bot = new Bot('5780876936:AAGtj-8WeL-WlsE9QmzuH6URFTPxPd3EMI8', $this->chatId);
+        
+        /* Текущий пользователь */
+        $user = BotUser::getUser($this->chatId);
+        $user->setLastSendAt();
+        $user->saveLastMessage($this->currentMessage);
 
         // Если текстовое сообщение
         if (BotHelper::isTextMessage($this->postData)) {
 
-            $user->saveLastMessage($this->currentMessage);
-            $user->setLastSendAt();
-
             switch($user->step_message) {
                 case 0:
+                    $this->sendMessage(
+                        "<b>Приветствую терпил😌</b>\n"
+                    );
+
                     $user->setStepMessage(1);
                 break;
     
                 case 1:
-                    // $user->setStepMessage(2);
-                    $this->sendMessage('сосать');
+                    $this->sendMessage(
+                        "<b>Отправь сообщение для других терпил</b>\n"
+                    );
+
+                    $user->setStepMessage(2);
                 break;
                 
                 case 2:
@@ -102,58 +129,16 @@ class BotController extends Controller
         return true;
     }
 
-    // private function processFill($mailRequest) 
-    // {
-    //     switch($mailRequest->status) {
-    //         case MailRequest::STATUS_CREATED:
-    //             $this->askName();
-    //             $mailRequest->nextStep();
-    //         break;
-
-    //         case MailRequest::STATUS_NAME:
-    //             if ($mailRequest->saveName($this->currentMessage)) {
-    //                 $this->askEmail();
-    //             } else {
-    //                 $this->sendError();
-    //             }
-    //         break;
-
-    //         case MailRequest::STATUS_EMAIL:
-    //             if($mailRequest->saveEmail($this->currentMessage)) {
-    //                 $this->askText();
-    //             } else {
-    //                 $this->sendNoSuchEmail();
-    //             }
-    //         break;
-
-    //         case MailRequest::STATUS_TEXT:
-    //             if($mailRequest->saveText($this->currentMessage)) {
-    //                 if($mailRequest->sendEmail()) {
-    //                     $this->sendSuccess();
-    //                 } else {
-    //                     $this->sendCouldntSendMail();
-    //                 }
-    //             } else {
-    //                 $this->sendError();
-    //             }
-    //         break;
-    //     }
-    // } 
-
     private function sendMessage($message) 
     {
-        $this->bot->sendMessage($this->chatId, $message);
-    }
-
-    private function sendMessageTest($message) 
-    {
-        $this->bot($this->chatId, $message);
+        $this->bot->sendMessage($message);
     }
 
     private function sendMessageWithKeyboard($message, $keyboardData  = [[["text" => "Дальше"]]]) 
     {
-        $keyboard = Bot::getOneTimeKeyboard($keyboardData);
-        Bot::sendMessageWithKeyboard($this->chatId, $message, $keyboard);
+        $keyboard = $this->bot->getOneTimeKeyboard($keyboardData);
+
+        $this->bot->sendMessageWithKeyboard($message, $keyboard);
     }
 
     private function sendMessageWithInlineKeyboard($message, $button_text, $callback) 
@@ -162,8 +147,14 @@ class BotController extends Controller
             ['text' => $button_text, 'callback_data' => $callback],
         ];
 
-        $keyboard = Bot::getInlineKeyBoard([$keyboardData]);
-        Bot::sendMessageWithInlineKeyboard($this->chatId, $message, $keyboard);
+        $keyboard = $this->bot->getInlineKeyBoard([$keyboardData]);
+        $this->bot->sendMessageWithInlineKeyboard($message, $keyboard);
+    }
+
+    private function sendMessageWithInlineKeyboardArray($message, $keyboardData) 
+    {
+        $keyboard = $this->bot->getInlineKeyBoard([$keyboardData]); 
+        $this->bot->sendMessageWithInlineKeyboard($message, $keyboard);
     }
 
     private function sendMessageWithPhotoAndKeyboard($message, $button_text = null, $callback = null, $button_url = null, $photoUrl = null) 
@@ -178,24 +169,23 @@ class BotController extends Controller
             ];
         }
 
-
-        $keyboard = Bot::getInlineKeyBoard([$keyboardData]);
+        $keyboard = $this->bot->getInlineKeyBoard([$keyboardData]);
 
         if (!empty($photoUrl) && !empty($keyboardData)) {
 
-            Bot::sendMessageWithPhotoAndKeyboard($this->chatId, $message, $keyboard, $photoUrl);
+            $this->bot->sendMessageWithPhotoAndKeyboard($message, $keyboard, $photoUrl);
 
         } else if (empty($photoUrl) && !empty($keyboardData)) {
 
-            Bot::sendMessageWithInlineKeyboard($this->chatId, $message, $keyboard);
+            $this->bot->sendMessageWithInlineKeyboard($message, $keyboard);
 
         } else if (!empty($photoUrl) && empty($keyboardData)) {
 
-            Bot::sendMessageWithPhoto($this->chatId, $message, $photoUrl);
+            $this->bot->sendMessageWithPhoto($message, $photoUrl);
 
         } else {
 
-            Bot::sendMessage($this->chatId, $message);
+            $this->bot->sendMessage($message);
 
         }
     }
@@ -203,9 +193,9 @@ class BotController extends Controller
     private function sendMessageWithPhoto($message, $photoUrl = null) 
     {
         if (!empty($photoUrl)) {
-            Bot::sendMessageWithPhoto($this->chatId, $message, $photoUrl);
+            $this->bot->sendMessageWithPhoto($message, $photoUrl);
         } else {
-            Bot::sendMessage($this->chatId, $message);
+            $this->bot->sendMessage($message);
         }
     }
 }
