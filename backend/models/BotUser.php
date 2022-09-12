@@ -64,7 +64,7 @@ class BotUser extends \yii\db\ActiveRecord
 
     public function afterSave($insert, $changedAttributes)
     {
-        $this->sendGetCourseRequest();
+        // $this->sendGetCourseRequest();
 
         parent::afterSave($insert, $changedAttributes);
     }
