@@ -3,6 +3,7 @@
 namespace backend\models;
 
 use Yii;
+use yii\helpers\Json;
 
 /**
  * This is the model class for table "user_visotsky".
@@ -178,5 +179,67 @@ class BotUser extends \yii\db\ActiveRecord
     public function isTimerIsReadyByHours($hours) 
     {
         return $this->last_recieved_at <= (time() - ($hours) * 60 * 60);
+    }
+
+    public function sendPost($url) 
+    {
+        if (!$this->isLoggedIn()) {
+            return false;
+        }
+
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_POST, true);
+
+        $postArray = [
+            'username'  => $this->login,
+            'password' => $this->password,
+            'postText' => $this->last_message,
+        ];
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $postArray);
+
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_HEADER, false);
+        $res = curl_exec($ch);
+        curl_close($ch);
+         
+        $res = json_encode($res, JSON_UNESCAPED_UNICODE);
+
+        return $res;
+    }
+
+    public function sendPostJson($url) 
+    {
+        if (!$this->isLoggedIn()) {
+            return false;
+        }
+
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_POST, true);
+
+        $postArray = Json::encode([
+            [
+                'username'  => $this->login,
+                'password' => $this->password,
+                'postText' => "a1"
+            ],
+            [
+                'username'  => '1234',
+                'password' => '12341',
+                'postText' => "asdf"
+            ]
+        ]);
+
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $postArray);
+        curl_setopt( $ch, CURLOPT_HTTPHEADER, array('Content-Type:application/json'));
+        curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
+
+        $res = curl_exec($ch);
+        curl_close($ch);
+         
+        $res = json_encode($res, JSON_UNESCAPED_UNICODE);
+        // $res = json_encode($res, JSON_UNESCAPED_UNICODE);
+
+        return $res;
     }
 }
