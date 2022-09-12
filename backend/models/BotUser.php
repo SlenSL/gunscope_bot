@@ -10,9 +10,9 @@ use Yii;
  * @property int $id
  * @property string $email
  * @property string $reasons
- * @property int|null $step_fill
+ * @property int|null $step_login
  * @property int|null $step_message
- * @property int|null $filled_at
+ * @property int|null $logged_at
  * @property int|null $first_send_at
  * @property int|null $last_send_at
  * @property int|null $last_revieved_at
@@ -41,8 +41,9 @@ class BotUser extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['step_fill', 'step_message', 'step_message_precise', 'filled_at', 'first_send_at', 'last_send_at', 'last_recieved_at', 'chat_id'], 'integer'],
-            [['email', 'reasons'], 'string', 'max' => 255], 
+            [['step_login', 'step_message', 'step_message_precise', 'logged_at', 'first_send_at', 'last_send_at', 'last_recieved_at', 'chat_id'], 'integer'],
+            [['is_login'], 'integer', 'max' => 1],
+            [['email', 'reasons', 'login', 'password'], 'string', 'max' => 255], 
             [['last_message'], 'string', 'max' => 6555],
         ];
     }
@@ -52,7 +53,7 @@ class BotUser extends \yii\db\ActiveRecord
 
         if($insert) {
             $this->first_send_at = time();
-            $this->step_fill = 0;
+            $this->step_login = 0;
             $this->step_message = 0;
             $this->step_message_precise = 0;
         }
@@ -76,9 +77,9 @@ class BotUser extends \yii\db\ActiveRecord
             'id' => 'ID',
             'email' => 'Email',
             'reasons' => 'Reasons',
-            'step_fill' => 'Step Fill',
+            'step_login' => 'Step Fill',
             'step_message' => 'Step Message',
-            'filled_at' => 'Filled At',
+            'logged_at' => 'Filled At',
             'first_send_at' => 'First Send At',
             'last_send_at' => 'Last Send At',
             'last_revieved_at' => 'Last Revieved At',
@@ -105,7 +106,7 @@ class BotUser extends \yii\db\ActiveRecord
 
     public function setFilledAt()
     {
-        $this->filled_at = time();
+        $this->logged_at = time();
     }
 
     public function setRecievedAt()
@@ -135,7 +136,7 @@ class BotUser extends \yii\db\ActiveRecord
 
     public function incrementStepFill()
     {
-        $this->step_fill = $this->step_fill + 1;
+        $this->step_login = $this->step_login + 1;
     }
 
     public function isTimerIsReadyByMinutes($minutes) 
