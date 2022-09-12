@@ -75,6 +75,7 @@ class BotController extends Controller
 
         $this->bot->answerCallback(
             $this->clickedButton,
+            // '',
             $callback_id
         );
 
@@ -87,16 +88,23 @@ class BotController extends Controller
         // Если нажатие на кнопку     
         if (!empty($this->clickedButton)) {
             $this->processButtonClick();
+
         // Если текстовое сообщение
         } else if (!empty($this->currentMessage)) {
-            $this->processTextMessage();
-        } else {
-            $this->sendMessage(
-                "😔Некорректный формат сообщения. Попробуйте снова"
-            );
+
+            // Если нелогин
+            if (!$this->user->isLoggedIn()) {
+                $this->processLogin();
+                
+            // Если логин
+            } else {
+                $this->processTextMessage();
+            }
+            
         }
 
-        return $this->user->save();  
+        $this->user->save();  
+        return http_response_code(200);
     }
 
     private function processButtonClick()
@@ -120,10 +128,58 @@ class BotController extends Controller
                 $this->user->setStepMessage(0);
             break;
 
+            case 'login':
+                $this->sendMessageWithInlineKeyboard(
+                    'Введите логин:',
+                    'Отмена',
+                    'cancel'
+                );
+
+                $this->user->incrementStepLogin();
+            break;
+
             default:
                 $this->user->setStepMessage(0);
                 $this->sendMenu();
             break;
+        }
+    }
+
+    private function processLogin()
+    {
+        if (empty($this->user->login)) {
+            switch($this->user->step_login) {
+                case 0:
+                    $this->sendMenu();
+                break;
+
+                case 1:
+                    // if ($username = ValidationHelper::validateUsername($this->currentMessage)) {
+                        $username = $this->currentMessage;
+                        $this->user->setLogin($username);
+                        $this->user->incrementStepLogin();
+
+                        $this->sendMessageWithInlineKeyboard(
+                            'Введите пароль:',
+                            'Отмена',
+                            'cancel'
+                        );
+                        
+
+                    // } else {
+                    //     $this->sendMessage(
+                    //         "Некорректный формат логина. Он должен содержать только латинские символы и цифры."
+                    //     );
+                    // }
+                break;
+            }
+        } else if (empty($this->user->password)) {
+            $this->user->setPassword(trim($this->currentMessage));
+            $this->user->incrementStepLogin();
+            $this->sendMessage( 
+                "Успешно!"
+            );
+            $this->sendMenu();
         }
     }
 
@@ -148,14 +204,21 @@ class BotController extends Controller
 
     private function sendMenu() 
     {
+        if ($this->user->isLoggedIn()) {
+            $firstButton = ['text' => '📧Отправить пост', 'callback_data' => 'send'];
+        } else {
+            $firstButton = ['text' => '👨🏿‍💻Войти в аккаунт', 'callback_data' => 'login'];
+        }
+
         $this->sendMessageWithInlineKeyboardArray(
             "Что вы хотите сделать?",
             [
-                ['text' => '📧Отправить пост', 'callback_data' => 'send'],
+                $firstButton,
                 ['text' => "💻Смотреть посты", 'callback_data' => 'watch'],
             ]
         );
     }
+
 
     private function sendMessage($message) 
     {
@@ -226,4 +289,5 @@ class BotController extends Controller
             $this->bot->sendMessage($message);
         }
     }
+
 }
