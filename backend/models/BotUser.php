@@ -150,6 +150,11 @@ class BotUser extends \yii\db\ActiveRecord
         $this->step_message = (int) $step;
     }
 
+    public function setStepLogin($step) 
+    {
+        $this->step_message = (int) $step;
+    }
+
     public function setStepMessagePrecise($step) 
     {
         $this->step_message_precise = (int) $step;
@@ -160,7 +165,7 @@ class BotUser extends \yii\db\ActiveRecord
         $this->step_message = $this->step_message + 1;
     }
 
-    public function incrementStepFill()
+    public function incrementStepLogin()
     {
         $this->step_login = $this->step_login + 1;
     }
