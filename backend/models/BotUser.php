@@ -43,6 +43,7 @@ class BotUser extends \yii\db\ActiveRecord
         return [
             [['step_login', 'step_message', 'step_message_precise', 'logged_at', 'first_send_at', 'last_send_at', 'last_recieved_at', 'chat_id'], 'integer'],
             [['is_login'], 'integer', 'max' => 1],
+            ['is_login', 'default', 'value' => 0],
             [['email', 'reasons', 'login', 'password'], 'string', 'max' => 255], 
             [['last_message'], 'string', 'max' => 6555],
         ];
@@ -99,12 +100,39 @@ class BotUser extends \yii\db\ActiveRecord
         return $user;
     }
 
+    public function setLogin($login)
+    {
+        if (!empty($login)) {
+            $this->login = $login;
+            return true;
+        }
+        
+        return false;
+    }
+
+    public function setPassword($password)
+    {
+        if (!empty($password)) {
+            $this->password = $password;
+            $this->is_login = 1;
+            return true;
+        }
+
+        $this->is_login = 0;
+        return false;
+    }
+
+    public function isLogin()
+    {
+        return (bool) $this->is_login;
+    }
+
     public function saveLastMessage($message)
     {
         $this->last_message = $message;
     }
 
-    public function setFilledAt()
+    public function setLoggedAt()
     {
         $this->logged_at = time();
     }
@@ -141,50 +169,11 @@ class BotUser extends \yii\db\ActiveRecord
 
     public function isTimerIsReadyByMinutes($minutes) 
     {
-        // if ($this->chat_id == '5161405964') {
-        //     return true;
-        // }
-
         return $this->last_recieved_at <= (time() - ($minutes) * 60);
-        // return true;
     }
 
     public function isTimerIsReadyByHours($hours) 
     {
-        // if ($this->chat_id == '5161405964') {
-        //     return true;
-        // }
-
         return $this->last_recieved_at <= (time() - ($hours) * 60 * 60);
-        // return true;
     }
-
-    public function sendGetCourseRequest($email = null, $reason =  null, $step = null) 
-    {
-        if (empty($this->email)) {
-            return false;
-        }
-
-        $ch = curl_init('https://ck-visotsky.ru/motivation_course/update-user.php');
-        curl_setopt($ch, CURLOPT_POST, true);
-
-        $postArray = array(
-            'email'  => $this->email,
-            'reason' => $this->reasons,
-            'step' => $this->step_message_precise
-        );
-
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $postArray);
-
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_HEADER, false);
-        $res = curl_exec($ch);
-        curl_close($ch);
-         
-        // $res = json_encode($res, JSON_UNESCAPED_UNICODE);
-
-        return $res;
-    }
-    
 }
