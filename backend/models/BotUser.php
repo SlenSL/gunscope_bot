@@ -114,17 +114,15 @@ class BotUser extends \yii\db\ActiveRecord
     {
         if (!empty($password)) {
             $this->password = $password;
-            $this->is_login = 1;
             return true;
         }
 
-        $this->is_login = 0;
         return false;
     }
 
-    public function isLogin()
+    public function isLoggedIn()
     {
-        return (bool) $this->is_login;
+        return (!empty($this->password) && !empty($this->login));
     }
 
     public function saveLastMessage($message)
