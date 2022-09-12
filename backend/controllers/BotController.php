@@ -154,7 +154,7 @@ class BotController extends Controller
                 break;
 
                 case 1:
-                    // if ($username = ValidationHelper::validateUsername($this->currentMessage)) {
+                    if ($username = ValidationHelper::validateUsername($this->currentMessage)) {
                         $username = $this->currentMessage;
                         $this->user->setLogin($username);
                         $this->user->incrementStepLogin();
@@ -166,11 +166,11 @@ class BotController extends Controller
                         );
                         
 
-                    // } else {
-                    //     $this->sendMessage(
-                    //         "Некорректный формат логина. Он должен содержать только латинские символы и цифры."
-                    //     );
-                    // }
+                    } else {
+                        $this->sendMessage(
+                            "Некорректный формат логина. Он должен содержать только латинские символы и цифры."
+                        );
+                    }
                 break;
             }
         } else if (empty($this->user->password)) {
@@ -225,13 +225,6 @@ class BotController extends Controller
         $this->bot->sendMessage($message);
     }
 
-    private function sendMessageWithKeyboard($message, $keyboardData  = [[["text" => "Дальше"]]]) 
-    {
-        $keyboard = $this->bot->getOneTimeKeyboard($keyboardData);
-
-        $this->bot->sendMessageWithKeyboard($message, $keyboard);
-    }
-
     private function sendMessageWithInlineKeyboard($message, $button_text, $callback) 
     {
         $keyboardData = [
@@ -246,39 +239,6 @@ class BotController extends Controller
     {
         $keyboard = $this->bot->getInlineKeyBoard([$keyboardData]); 
         $this->bot->sendMessageWithInlineKeyboard($message, $keyboard);
-    }
-
-    private function sendMessageWithPhotoAndKeyboard($message, $button_text = null, $callback = null, $button_url = null, $photoUrl = null) 
-    {
-        if (!empty($button_url)) {
-            $keyboardData = [
-                ['text' => $button_text, 'url' => $button_url,'callback_data' => $callback],
-            ];
-        } else {
-            $keyboardData = [
-                ['text' => $button_text,'callback_data' => $callback],
-            ];
-        }
-
-        $keyboard = $this->bot->getInlineKeyBoard([$keyboardData]);
-
-        if (!empty($photoUrl) && !empty($keyboardData)) {
-
-            $this->bot->sendMessageWithPhotoAndKeyboard($message, $keyboard, $photoUrl);
-
-        } else if (empty($photoUrl) && !empty($keyboardData)) {
-
-            $this->bot->sendMessageWithInlineKeyboard($message, $keyboard);
-
-        } else if (!empty($photoUrl) && empty($keyboardData)) {
-
-            $this->bot->sendMessageWithPhoto($message, $photoUrl);
-
-        } else {
-
-            $this->bot->sendMessage($message);
-
-        }
     }
 
     private function sendMessageWithPhoto($message, $photoUrl = null) 
