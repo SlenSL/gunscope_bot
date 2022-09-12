@@ -79,7 +79,19 @@ class Bot extends Model
             "parse_mode" => 'HTML'
         ]);
     }
+
+    public function answerCallback($text, $callback_id) 
+    {
+        // отправляем Уведомление
+        self::botApiQuery("answerCallbackQuery", [
+            "callback_query_id" => $callback_id,
+            "text" => $text,
+            "alert" => false
+        ]);
+    }
+
     
+
     /**
      * Sends message with keyboard by $this->chatId
      * @param mixed $this->chatId unique identifier of chat in Telegram

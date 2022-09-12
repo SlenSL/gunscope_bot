@@ -16,6 +16,7 @@ class BotController extends Controller
 
     private $chatId;
     private $currentMessage;
+    private $clickedButton;
     private $postData;
     private $user;
 
@@ -58,75 +59,102 @@ class BotController extends Controller
 
     public function actionWebhook()
     {        
-        $this->chatId = 712226559;
-
-        /* Инициализация бота */
-        $this->bot = new Bot('5780876936:AAGtj-8WeL-WlsE9QmzuH6URFTPxPd3EMI8', $this->chatId);
-
-         $this->sendMessageWithInlineKeyboardArray(
-            "Что вы хотите сделать?",
-            [
-                ['text' => '📧Отправить пост', 'callback_data' => 'send_post'],
-                ['text' => "💻Смотреть посты (5 крайних)", 'callback_data' => 'watch_posts'],
-            ]
-        );
-
-        $this->postData = BotHelper::getPostData();
-
-        $this->sendMessageWithInlineKeyboard(
-            "<b>Приветствую терпил😌</b>\n",
-            $this->postData['callback_query']['data'],
-            // 'af',
-            'da'
-        );
+        // $this->chatId = 712226559;
+        // $this->currentMessage = 'baza';
+        // $this->bot = new Bot('5780876936:AAGtj-8WeL-WlsE9QmzuH6URFTPxPd3EMI8', $this->chatId);
 
         /* Текущий ответ от пользователя */
         $this->postData = BotHelper::getPostData();
-        $this->chatId = $this->postData['message']['chat']['id'];
+        $this->chatId = $this->postData['message']['chat']['id'] ?: $this->postData['callback_query']['from']['id'];
+        $this->clickedButton = $this->postData['callback_query']['data'];
         $this->currentMessage = trim($this->postData['message']['text']);
-        
+        $callback_id = (string) $this->postData['callback_query']['id'];
+
         /* Инициализация бота */
         $this->bot = new Bot('5780876936:AAGtj-8WeL-WlsE9QmzuH6URFTPxPd3EMI8', $this->chatId);
-        
+
+        $this->bot->answerCallback(
+            $this->clickedButton,
+            $callback_id
+        );
+
         /* Текущий пользователь */
-        $user = BotUser::getUser($this->chatId);
-        $user->setLastSendAt();
-        $user->saveLastMessage($this->currentMessage);
+        $this->user = BotUser::getUser($this->chatId);
+        $this->user->setLastSendAt();
+        $this->user->saveLastMessage($this->currentMessage);
+        // $this->user->saveLastMessage($this->clickedButton);
 
+        // Если нажатие на кнопку     
+        if (!empty($this->clickedButton)) {
+            $this->processButtonClick();
         // Если текстовое сообщение
-        if (BotHelper::isTextMessage($this->postData)) {
-
-            switch($user->step_message) {
-                case 0:
-                    $this->sendMessage(
-                        "<b>Приветствую терпил😌</b>\n"
-                    );
-
-                    $user->setStepMessage(1);
-                break;
-    
-                case 1:
-                    $this->sendMessage(
-                        "<b>Отправь сообщение для других терпил</b>\n"
-                    );
-
-                    $user->setStepMessage(2);
-                break;
-                
-                case 2:
-                break;
-    
-                default:
-                    $this->sendMessage(
-                        "<b>Спасибо, что вы с нами😌</b>\n"
-                    );
-                break;
-            }
-
-            $user->save();           
+        } else if (!empty($this->currentMessage)) {
+            $this->processTextMessage();
+        } else {
+            $this->sendMessage(
+                "😔Некорректный формат сообщения. Попробуйте снова"
+            );
         }
 
-        return true;
+        return $this->user->save();  
+    }
+
+    private function processButtonClick()
+    {
+        switch($this->clickedButton) {
+            case 'send':
+                $this->sendMessageWithInlineKeyboard(
+                    'Введите текст, который хотите отправить:',
+                    'Отмена',
+                    'cancel'
+                );
+                
+                $this->user->setStepMessage(1);
+            break;
+
+            case 'watch':
+                $this->sendMessage(
+                    'Типо работает окда'
+                );
+                //TODO: Метод отправки сообщений
+                $this->user->setStepMessage(0);
+            break;
+
+            default:
+                $this->user->setStepMessage(0);
+                $this->sendMenu();
+            break;
+        }
+    }
+
+    private function processTextMessage()
+    {
+        switch($this->user->step_message) {
+            case 1:
+                $this->sendMessage(
+                    "Благодарю за ответ! Ваш пост улетел как птичка от пинка под зад😁"
+                );
+
+                $this->sendMenu(); 
+                
+                $this->user->setStepMessage(0);
+            break;
+
+            default:
+                $this->sendMenu();
+            break;
+        }  
+    }
+
+    private function sendMenu() 
+    {
+        $this->sendMessageWithInlineKeyboardArray(
+            "Что вы хотите сделать?",
+            [
+                ['text' => '📧Отправить пост', 'callback_data' => 'send'],
+                ['text' => "💻Смотреть посты", 'callback_data' => 'watch'],
+            ]
+        );
     }
 
     private function sendMessage($message) 
