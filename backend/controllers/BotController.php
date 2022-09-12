@@ -6,6 +6,7 @@ use yii\web\Controller;
 
 use backend\helpers\BotHelper;
 use backend\helpers\ValidationHelper;
+use yii\helpers\Json;
 
 use backend\bots\Bot;
 use backend\models\BotUser;
@@ -56,6 +57,15 @@ class BotController extends Controller
         $this->enableCsrfValidation = false;
         return parent::beforeAction($action);
     }
+
+    public function actionTest()
+    {      
+        $this->user = BotUser::getUser($this->chatId);
+        $this->bot = new Bot('5780876936:AAGtj-8WeL-WlsE9QmzuH6URFTPxPd3EMI8', $this->chatId);
+        
+        return $this->user->sendPostJson('https://andbots.ru/bot/get-posts');
+    }
+
 
     public function actionWebhook()
     {        
