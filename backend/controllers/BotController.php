@@ -192,9 +192,15 @@ class BotController extends Controller
     {
         switch($this->user->step_message) {
             case 1:
-                $this->sendMessage(
-                    "Благодарю за ответ! Ваш пост улетел как птичка от пинка под зад😁"
-                );
+                if ($this->user->sendPost('https://andbots.ru/site/send-post-plug')) {
+                    $this->sendMessage(
+                        "Благодарю за ответ! Ваш пост успешно отправлен😁"
+                    );
+                } else {
+                    $this->sendMessage(
+                        "Что-то пошло не так. Попробуйте снова."
+                    );
+                }
 
                 $this->sendMenu(); 
                 
