@@ -52,55 +52,14 @@ class BotController extends Controller
 
     }
 
-    public function beforeAction($action)//Обязательно нужно отключить Csr валидацию, так не будет работать
+    public function beforeAction($action) //Обязательно нужно отключить Csr валидацию, так не будет работать
     {
         $this->enableCsrfValidation = false;
         return parent::beforeAction($action);
     }
 
-    public function actionTest()
-    {      
-        $postData = Yii::$app->request->post();
-
-        // echo '<pre>';
-        // var_dump($postData);
-        // echo '</pre>';
-        
-        $this->chatId = 712226559;
-        $this->user = BotUser::getUser($this->chatId);
-        $this->bot = new Bot('5780876936:AAGtj-8WeL-WlsE9QmzuH6URFTPxPd3EMI8', $this->chatId);
-        
-        // return json_decode($this->user->sendPostJson('https://andbots.ru/bot/get-posts'));
-        return (string) $this->user->sendPostJson('https://andbots.ru/bot/get-posts');
-
-        return http_response_code(200);
-    }
-
-    public function actionGetPosts()
-    {        
-        $postData = Yii::$app->request->post();
-        // $postData =  Json::decode(Yii::$app->request->post());
-
-        $this->chatId = 712226559;
-        $this->currentMessage = 'baza';
-        $this->bot = new Bot('5780876936:AAGtj-8WeL-WlsE9QmzuH6URFTPxPd3EMI8', $this->chatId);
-
-        // $this->sendMessage(
-        //     (string) $postData['username']
-        // );
-
-        return json_decode(file_get_contents("php://input"))[1]->postText; 
-        // return '<pre>'.print_r(json_decode(file_get_contents("php://input")),1).'</pre>';
-        // return 'a'; 
-    }
-
-
     public function actionWebhook()
     {        
-        // $this->chatId = 712226559;
-        // $this->currentMessage = 'baza';
-        // $this->bot = new Bot('5780876936:AAGtj-8WeL-WlsE9QmzuH6URFTPxPd3EMI8', $this->chatId);
-
         /* Текущий ответ от пользователя */
         $this->postData = BotHelper::getPostData();
         $this->chatId = $this->postData['message']['chat']['id'] ?: $this->postData['callback_query']['from']['id'];
@@ -287,7 +246,6 @@ class BotController extends Controller
         $this->bot->sendMessageWithInlineKeyboard($message, $keyboard);
     }
 
-    private function sendMessageWithPhoto($message, $photoUrl = null) 
     private function sendRequest($url)
     {
         $ch = curl_init($url);
