@@ -112,8 +112,7 @@ class BotController extends Controller
         $this->bot = new Bot('5780876936:AAGtj-8WeL-WlsE9QmzuH6URFTPxPd3EMI8', $this->chatId);
 
         $this->bot->answerCallback(
-            $this->clickedButton,
-            // '',
+            '',
             $callback_id
         );
 
@@ -121,7 +120,6 @@ class BotController extends Controller
         $this->user = BotUser::getUser($this->chatId);
         $this->user->setLastSendAt();
         $this->user->saveLastMessage($this->currentMessage);
-        // $this->user->saveLastMessage($this->clickedButton);
 
         // Если нажатие на кнопку     
         if (!empty($this->clickedButton)) {
@@ -130,15 +128,14 @@ class BotController extends Controller
         // Если текстовое сообщение
         } else if (!empty($this->currentMessage)) {
 
-            // Если нелогин
+            // Если не ввел лог+пароль
             if (!$this->user->isLoggedIn()) {
                 $this->processLogin();
                 
-            // Если логин
+            // Если ввел лог+пароль
             } else {
                 $this->processTextMessage();
             }
-            
         }
 
         $this->user->save();  
@@ -159,10 +156,8 @@ class BotController extends Controller
             break;
 
             case 'watch':
-                $this->sendMessage(
-                    'Типо работает окда'
-                );
-                //TODO: Метод отправки сообщений
+                $this->getPosts();
+
                 $this->user->setStepMessage(0);
             break;
 
@@ -181,6 +176,19 @@ class BotController extends Controller
                 $this->sendMenu();
             break;
         }
+    }
+
+    private function getPosts()
+    {
+        $answer =  Json::decode($this->sendRequest('https://andbots.ru/site/get-posts'));
+        $posts = json_decode($answer, true);
+        
+        foreach ($posts as $post) {
+            $this->sendMessage(
+                "{$post['postText']}\n<b>Автор: </b> {$post['username']}"
+            );
+        }
+
     }
 
     private function processLogin()
@@ -280,12 +288,24 @@ class BotController extends Controller
     }
 
     private function sendMessageWithPhoto($message, $photoUrl = null) 
+    private function sendRequest($url)
     {
-        if (!empty($photoUrl)) {
-            $this->bot->sendMessageWithPhoto($message, $photoUrl);
-        } else {
-            $this->bot->sendMessage($message);
-        }
-    }
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_POST, true);
 
+        $postArray = [
+        ];
+
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $postArray);
+
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_HEADER, false);
+        $res = curl_exec($ch);
+        curl_close($ch);
+         
+        $res = json_encode($res, JSON_UNESCAPED_UNICODE);
+
+        return $res;
+    }
 }
