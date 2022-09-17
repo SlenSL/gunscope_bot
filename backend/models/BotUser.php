@@ -205,41 +205,6 @@ class BotUser extends \yii\db\ActiveRecord
          
         $res = json_encode($res, JSON_UNESCAPED_UNICODE);
 
-        return $res;
-    }
-
-    public function sendPostJson($url) 
-    {
-        if (!$this->isLoggedIn()) {
-            return false;
-        }
-
-        $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_POST, true);
-
-        $postArray = Json::encode([
-            [
-                'username'  => $this->login,
-                'password' => $this->password,
-                'postText' => "a1"
-            ],
-            [
-                'username'  => '1234',
-                'password' => '12341',
-                'postText' => "asdf"
-            ]
-        ]);
-
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $postArray);
-        curl_setopt( $ch, CURLOPT_HTTPHEADER, array('Content-Type:application/json'));
-        curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
-
-        $res = curl_exec($ch);
-        curl_close($ch);
-         
-        $res = json_encode($res, JSON_UNESCAPED_UNICODE);
-        // $res = json_encode($res, JSON_UNESCAPED_UNICODE);
-
-        return $res;
+        return !empty($res);
     }
 }
