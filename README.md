@@ -1,8 +1,8 @@
 # ПУШКОГРАМ
 
-- [ТЕХ. ЗАДАНИЕ](https://docs.google.com/document/d/1RWQ-oe9BfgYAcKExywaen6BT2m0UYTTx)
-- [КУРСОВАЯ РАБОТА](https://docs.google.com/document/d/1GT8651VXHTdy7wzwrx-C6Cwe1mvJhAUi)
-- [ПРЕЗЕНТАЦИЯ](https://docs.google.com/presentation/d/1zAHyB2kg0PO-LniNhh6TXB6FwgX98bG4)
+- [ТЕХ. ЗАДАНИЕ](https://github.com/SlenSL/gunscope_bot/blob/main/%D0%94%D0%9E%D0%9A%D0%A3%D0%9C%D0%95%D0%9D%D0%A2%D0%AB/%D0%A2%D0%B5%D1%85%D0%BD%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%BE%D0%B5%20%D0%97%D0%B0%D0%B4%D0%B0%D0%BD%D0%B8%D0%B5.docx)
+- [КУРСОВАЯ РАБОТА](https://github.com/SlenSL/gunscope_bot/blob/main/%D0%94%D0%9E%D0%9A%D0%A3%D0%9C%D0%95%D0%9D%D0%A2%D0%AB/%D0%9A%D1%83%D1%80%D1%81%D0%BE%D0%B2%D0%B0%D1%8F%20%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D0%B0.docx)
+- [ПРЕЗЕНТАЦИЯ](https://github.com/SlenSL/gunscope_bot/blob/main/%D0%94%D0%9E%D0%9A%D0%A3%D0%9C%D0%95%D0%9D%D0%A2%D0%AB/%D0%9F%D1%80%D0%B5%D0%B7%D0%B5%D0%BD%D1%82%D0%B0%D1%86%D0%B8%D1%8F.pptx)
 
 - [РЕПОЗИТОРИЙ WEB-КЛИЕНТА](https://github.com/saxplayer1/gunscope)
 - [РЕПОЗИТОРИЙ TELEGRAM-БОТА](https://github.com/SlenSL/gunscope_bot)
