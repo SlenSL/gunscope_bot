@@ -142,12 +142,14 @@ class BotController extends Controller
         $answer =  Json::decode($this->sendRequest('https://andbots.ru/site/get-posts'));
         $posts = json_decode($answer, true);
         
-        foreach ($posts as $post) {
+        foreach ($posts as $key => $post) {
+            if ($key <= 4)
             $this->sendMessage(
                 "{$post['postText']}\n<b>Автор: </b> {$post['username']}"
             );
         }
 
+        $this->sendMenu(); 
     }
 
     private function processLogin()

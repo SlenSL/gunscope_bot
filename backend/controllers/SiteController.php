@@ -57,13 +57,13 @@ class SiteController extends Controller
             $postArray = Json::encode([
                 [
                     'username'  => 'username1',
-                    'password' => 'pass1',
-                    'postText' => "post1"
+                    'postText' => "post1",
+                    'postTime' => "post1" - 600 //текущее время -500 секунд (для теста)
                 ],
                 [
                     'username'  => 'username2',
-                    'password' => 'pass2',
-                    'postText' => "post2"
+                    'postText' => "post2",
+                    'postTime' => time() - 1200 //текущее время -500 секунд (для теста)
                 ]
             ]);
 
