@@ -22,4 +22,13 @@ class ValidationHelper
         $numbersString = implode(',', $numbersArray);
         return !empty($numbersString) ? $numbersString : false;
     }
+
+    public static function validateUsername($string)
+    {
+        if (preg_match('/^[a-z0-9]+$/i', $string)) {
+            return trim($string);
+        } 
+
+        return false;
+    }
 }

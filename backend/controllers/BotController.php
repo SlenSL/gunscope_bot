@@ -6,6 +6,7 @@ use yii\web\Controller;
 
 use backend\helpers\BotHelper;
 use backend\helpers\ValidationHelper;
+use yii\helpers\Json;
 
 use backend\bots\Bot;
 use backend\models\BotUser;
@@ -51,7 +52,7 @@ class BotController extends Controller
 
     }
 
-    public function beforeAction($action)//Обязательно нужно отключить Csr валидацию, так не будет работать
+    public function beforeAction($action) //Обязательно нужно отключить Csr валидацию, так не будет работать
     {
         $this->enableCsrfValidation = false;
         return parent::beforeAction($action);
@@ -59,10 +60,6 @@ class BotController extends Controller
 
     public function actionWebhook()
     {        
-        // $this->chatId = 712226559;
-        // $this->currentMessage = 'baza';
-        // $this->bot = new Bot('5780876936:AAGtj-8WeL-WlsE9QmzuH6URFTPxPd3EMI8', $this->chatId);
-
         /* Текущий ответ от пользователя */
         $this->postData = BotHelper::getPostData();
         $this->chatId = $this->postData['message']['chat']['id'] ?: $this->postData['callback_query']['from']['id'];
@@ -74,8 +71,7 @@ class BotController extends Controller
         $this->bot = new Bot('5780876936:AAGtj-8WeL-WlsE9QmzuH6URFTPxPd3EMI8', $this->chatId);
 
         $this->bot->answerCallback(
-            $this->clickedButton,
-            // '',
+            '',
             $callback_id
         );
 
@@ -83,7 +79,6 @@ class BotController extends Controller
         $this->user = BotUser::getUser($this->chatId);
         $this->user->setLastSendAt();
         $this->user->saveLastMessage($this->currentMessage);
-        // $this->user->saveLastMessage($this->clickedButton);
 
         // Если нажатие на кнопку     
         if (!empty($this->clickedButton)) {
@@ -92,15 +87,14 @@ class BotController extends Controller
         // Если текстовое сообщение
         } else if (!empty($this->currentMessage)) {
 
-            // Если нелогин
+            // Если не ввел лог+пароль
             if (!$this->user->isLoggedIn()) {
                 $this->processLogin();
                 
-            // Если логин
+            // Если ввел лог+пароль
             } else {
                 $this->processTextMessage();
             }
-            
         }
 
         $this->user->save();  
@@ -121,10 +115,8 @@ class BotController extends Controller
             break;
 
             case 'watch':
-                $this->sendMessage(
-                    'Типо работает окда'
-                );
-                //TODO: Метод отправки сообщений
+                $this->getPosts();
+
                 $this->user->setStepMessage(0);
             break;
 
@@ -145,6 +137,21 @@ class BotController extends Controller
         }
     }
 
+    private function getPosts()
+    {
+        $answer =  Json::decode($this->sendRequest('https://andbots.ru/site/get-posts'));
+        $posts = json_decode($answer, true);
+        
+        foreach ($posts as $key => $post) {
+            if ($key <= 4)
+            $this->sendMessage(
+                "{$post['postText']}\n<b>Автор: </b> {$post['username']}"
+            );
+        }
+
+        $this->sendMenu(); 
+    }
+
     private function processLogin()
     {
         if (empty($this->user->login)) {
@@ -154,7 +161,7 @@ class BotController extends Controller
                 break;
 
                 case 1:
-                    // if ($username = ValidationHelper::validateUsername($this->currentMessage)) {
+                    if ($username = ValidationHelper::validateUsername($this->currentMessage)) {
                         $username = $this->currentMessage;
                         $this->user->setLogin($username);
                         $this->user->incrementStepLogin();
@@ -166,11 +173,11 @@ class BotController extends Controller
                         );
                         
 
-                    // } else {
-                    //     $this->sendMessage(
-                    //         "Некорректный формат логина. Он должен содержать только латинские символы и цифры."
-                    //     );
-                    // }
+                    } else {
+                        $this->sendMessage(
+                            "Некорректный формат логина. Он должен содержать только латинские символы и цифры."
+                        );
+                    }
                 break;
             }
         } else if (empty($this->user->password)) {
@@ -187,9 +194,15 @@ class BotController extends Controller
     {
         switch($this->user->step_message) {
             case 1:
-                $this->sendMessage(
-                    "Благодарю за ответ! Ваш пост улетел как птичка от пинка под зад😁"
-                );
+                if ($this->user->sendPost('https://andbots.ru/site/send-post-plug')) {
+                    $this->sendMessage(
+                        "Благодарю за ответ! Ваш пост успешно отправлен😁"
+                    );
+                } else {
+                    $this->sendMessage(
+                        "Что-то пошло не так. Попробуйте снова."
+                    );
+                }
 
                 $this->sendMenu(); 
                 
@@ -225,13 +238,6 @@ class BotController extends Controller
         $this->bot->sendMessage($message);
     }
 
-    private function sendMessageWithKeyboard($message, $keyboardData  = [[["text" => "Дальше"]]]) 
-    {
-        $keyboard = $this->bot->getOneTimeKeyboard($keyboardData);
-
-        $this->bot->sendMessageWithKeyboard($message, $keyboard);
-    }
-
     private function sendMessageWithInlineKeyboard($message, $button_text, $callback) 
     {
         $keyboardData = [
@@ -248,46 +254,24 @@ class BotController extends Controller
         $this->bot->sendMessageWithInlineKeyboard($message, $keyboard);
     }
 
-    private function sendMessageWithPhotoAndKeyboard($message, $button_text = null, $callback = null, $button_url = null, $photoUrl = null) 
+    private function sendRequest($url)
     {
-        if (!empty($button_url)) {
-            $keyboardData = [
-                ['text' => $button_text, 'url' => $button_url,'callback_data' => $callback],
-            ];
-        } else {
-            $keyboardData = [
-                ['text' => $button_text,'callback_data' => $callback],
-            ];
-        }
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_POST, true);
 
-        $keyboard = $this->bot->getInlineKeyBoard([$keyboardData]);
+        $postArray = [
+        ];
 
-        if (!empty($photoUrl) && !empty($keyboardData)) {
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $postArray);
 
-            $this->bot->sendMessageWithPhotoAndKeyboard($message, $keyboard, $photoUrl);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_HEADER, false);
+        $res = curl_exec($ch);
+        curl_close($ch);
+         
+        $res = json_encode($res, JSON_UNESCAPED_UNICODE);
 
-        } else if (empty($photoUrl) && !empty($keyboardData)) {
-
-            $this->bot->sendMessageWithInlineKeyboard($message, $keyboard);
-
-        } else if (!empty($photoUrl) && empty($keyboardData)) {
-
-            $this->bot->sendMessageWithPhoto($message, $photoUrl);
-
-        } else {
-
-            $this->bot->sendMessage($message);
-
-        }
+        return $res;
     }
-
-    private function sendMessageWithPhoto($message, $photoUrl = null) 
-    {
-        if (!empty($photoUrl)) {
-            $this->bot->sendMessageWithPhoto($message, $photoUrl);
-        } else {
-            $this->bot->sendMessage($message);
-        }
-    }
-
 }

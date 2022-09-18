@@ -3,6 +3,7 @@
 namespace backend\models;
 
 use Yii;
+use yii\helpers\Json;
 
 /**
  * This is the model class for table "user_visotsky".
@@ -150,6 +151,11 @@ class BotUser extends \yii\db\ActiveRecord
         $this->step_message = (int) $step;
     }
 
+    public function setStepLogin($step) 
+    {
+        $this->step_message = (int) $step;
+    }
+
     public function setStepMessagePrecise($step) 
     {
         $this->step_message_precise = (int) $step;
@@ -160,7 +166,7 @@ class BotUser extends \yii\db\ActiveRecord
         $this->step_message = $this->step_message + 1;
     }
 
-    public function incrementStepFill()
+    public function incrementStepLogin()
     {
         $this->step_login = $this->step_login + 1;
     }
@@ -173,5 +179,32 @@ class BotUser extends \yii\db\ActiveRecord
     public function isTimerIsReadyByHours($hours) 
     {
         return $this->last_recieved_at <= (time() - ($hours) * 60 * 60);
+    }
+
+    public function sendPost($url) 
+    {
+        if (!$this->isLoggedIn()) {
+            return false;
+        }
+
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_POST, true);
+
+        $postArray = [
+            'username'  => $this->login,
+            'password' => $this->password,
+            'postText' => $this->last_message,
+        ];
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $postArray);
+
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_HEADER, false);
+        $res = curl_exec($ch);
+        curl_close($ch);
+         
+        $res = json_encode($res, JSON_UNESCAPED_UNICODE);
+
+        return !empty($res);
     }
 }
